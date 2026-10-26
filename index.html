@@ -298,12 +298,111 @@ footer .wrap {
 /* RESPONSIVE */
 @media (max-width: 640px) {
   .nav-links { display: none; }
+  .nav-links.open { display: flex; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0; background: rgba(17,24,32,.98); padding: 16px 24px 24px; gap: 16px; border-bottom: 1px solid var(--border); }
+  nav { position: sticky; }
   .service-item { grid-template-columns: 1fr; }
   .process-steps { grid-template-columns: 1fr; }
   .about-inner { grid-template-columns: 1fr; }
   .about-photo, .about-photo-placeholder { max-width: 260px; }
   .trust-items { gap: 28px; }
 }
+
+/* ── HAMBURGER ── */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  z-index: 110;
+}
+.hamburger span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--fg);
+  border-radius: 2px;
+  transition: transform .25s, opacity .25s;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+@media (max-width: 640px) { .hamburger { display: flex; } }
+
+/* ── BACK TO TOP ── */
+#back-top {
+  position: fixed;
+  bottom: 32px;
+  right: max(24px, env(safe-area-inset-right, 0px));
+  width: 44px;
+  height: 44px;
+  background: var(--accent);
+  color: #111820;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity .3s, transform .3s, background .2s;
+  z-index: 200;
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+}
+#back-top.visible { opacity: 1; transform: none; }
+#back-top:hover { background: var(--accent-lt); }
+
+/* ── CONTACT FORM ── */
+.contact-form {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--fg);
+  font-family: var(--ff-body);
+  font-size: .95rem;
+  padding: 12px 16px;
+  outline: none;
+  transition: border-color .2s;
+  resize: vertical;
+}
+.contact-form input:focus,
+.contact-form textarea:focus { border-color: var(--accent); }
+.contact-form textarea { min-height: 110px; }
+.contact-form .btn { align-self: flex-start; cursor: pointer; border: none; }
+.form-success {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 0;
+  text-align: center;
+}
+.form-success-icon {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #111820;
+  font-size: 1.6rem;
+  display: flex; align-items: center; justify-content: center;
+  animation: successPop .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes successPop {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+.form-success p { color: var(--fg-muted); font-size: .95rem; }
 
 @media (prefers-reduced-motion: reduce) {
   .faq-a { transition: none; }
@@ -382,12 +481,15 @@ html { scroll-behavior: smooth; }
 <nav>
   <div class="wrap">
     <span class="nav-logo">Владимир Медин</span>
-    <div class="nav-links">
+    <div class="nav-links" id="nav-links">
       <a href="#services">Услуги</a>
       <a href="#process">Как работаю</a>
       <a href="#about">Обо мне</a>
       <a href="#contact">Обсудить задачу</a>
     </div>
+    <button class="hamburger" id="hamburger" aria-label="Меню">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
 
@@ -404,15 +506,15 @@ html { scroll-behavior: smooth; }
   <div class="wrap">
     <div class="trust-items">
       <div class="trust-item">
-        <span class="trust-num">3</span>
+        <span class="trust-num" data-count="3">0</span>
         <span class="trust-label">типа решений: сайты, приложения, ИИ-агенты</span>
       </div>
       <div class="trust-item">
-        <span class="trust-num">10–15%</span>
+        <span class="trust-num" data-count-text="10–15%">—</span>
         <span class="trust-label">рост прибыли через автоматизацию</span>
       </div>
       <div class="trust-item">
-        <span class="trust-num">0</span>
+        <span class="trust-num" data-count="0">—</span>
         <span class="trust-label">давления на решение — только ваша выгода</span>
       </div>
     </div>
@@ -583,9 +685,23 @@ html { scroll-behavior: smooth; }
           vmedin2019@gmail.com
         </a>
       </div>
+
+      <form class="contact-form" id="contact-form" novalidate>
+        <input type="text" name="name" placeholder="Ваше имя" required autocomplete="name">
+        <input type="email" name="email" placeholder="Email" required autocomplete="email">
+        <textarea name="message" placeholder="Расскажите о вашей задаче" required></textarea>
+        <button type="submit" class="btn">Отправить</button>
+      </form>
+      <div class="form-success" id="form-success">
+        <div class="form-success-icon">✓</div>
+        <strong>Сообщение отправлено!</strong>
+        <p>Отвечу в течение одного рабочего дня.</p>
+      </div>
     </div>
   </div>
 </section>
+
+<button id="back-top" aria-label="Наверх">↑</button>
 
 <footer>
   <div class="wrap">
@@ -595,15 +711,15 @@ html { scroll-behavior: smooth; }
 </footer>
 
 <script>
-// FAQ accordion
+// ── FAQ accordion ──
 document.querySelectorAll('.faq-q').forEach(btn => {
   btn.addEventListener('click', () => {
     const item = btn.closest('.faq-item');
     const answer = item.querySelector('.faq-a');
     const isOpen = item.classList.contains('open');
-    document.querySelectorAll('.faq-item.open').forEach(openItem => {
-      openItem.classList.remove('open');
-      openItem.querySelector('.faq-a').style.maxHeight = '0';
+    document.querySelectorAll('.faq-item.open').forEach(o => {
+      o.classList.remove('open');
+      o.querySelector('.faq-a').style.maxHeight = '0';
     });
     if (!isOpen) {
       item.classList.add('open');
@@ -612,47 +728,98 @@ document.querySelectorAll('.faq-q').forEach(btn => {
   });
 });
 
-// Smooth scroll for nav links
+// ── Hamburger menu ──
+const hamburger = document.getElementById('hamburger');
+const navLinks  = document.getElementById('nav-links');
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('open');
+  navLinks.classList.toggle('open');
+});
+navLinks.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', () => {
+    hamburger.classList.remove('open');
+    navLinks.classList.remove('open');
+  });
+});
+
+// ── Smooth scroll ──
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => {
     const target = document.querySelector(a.getAttribute('href'));
-    if (target) {
-      e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   });
 });
 
-// Scroll reveal
+// ── Scroll reveal ──
 const revealEls = document.querySelectorAll(
-  '.trust-item, .service-item, .step, .faq-item, .contact-link, .about-inner, .section-title, .hero-eyebrow, .hero-sub, .btn'
+  '.trust-item, .service-item, .step, .faq-item, .contact-link, .about-inner, .section-title, .hero-eyebrow, .hero-sub, .hero .btn, .contact-form'
 );
 revealEls.forEach(el => el.classList.add('reveal'));
-
-const observer = new IntersectionObserver((entries) => {
+const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach((entry, i) => {
     if (entry.isIntersecting) {
       setTimeout(() => entry.target.classList.add('visible'), i * 80);
-      observer.unobserve(entry.target);
+      revealObserver.unobserve(entry.target);
     }
   });
-}, { threshold: 0.12 });
+}, { threshold: 0.1 });
+revealEls.forEach(el => revealObserver.observe(el));
+document.querySelectorAll('.hero-eyebrow, .hero-sub, .hero .btn').forEach(el => el.classList.add('visible'));
 
-revealEls.forEach(el => observer.observe(el));
-
-// Hero always visible immediately
-document.querySelectorAll('.hero-eyebrow, .hero-sub, .btn').forEach(el => {
-  el.classList.add('visible');
-});
-
-// Parallax hero
+// ── Parallax hero ──
 const heroSection = document.querySelector('.hero');
 if (heroSection && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   window.addEventListener('scroll', () => {
-    const y = window.scrollY;
-    heroSection.style.transform = `translateY(${y * 0.25}px)`;
+    heroSection.style.transform = `translateY(${window.scrollY * 0.22}px)`;
   }, { passive: true });
 }
+
+// ── Back to top ──
+const backTop = document.getElementById('back-top');
+window.addEventListener('scroll', () => {
+  backTop.classList.toggle('visible', window.scrollY > 400);
+}, { passive: true });
+backTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+// ── Counter animation ──
+function animateCount(el, target, duration) {
+  let start = 0, startTime = null;
+  function step(ts) {
+    if (!startTime) startTime = ts;
+    const progress = Math.min((ts - startTime) / duration, 1);
+    el.textContent = Math.round(progress * target);
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = target;
+  }
+  requestAnimationFrame(step);
+}
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const el = entry.target;
+    if (el.dataset.count !== undefined) {
+      animateCount(el, parseInt(el.dataset.count), 1200);
+    } else if (el.dataset.countText) {
+      setTimeout(() => { el.textContent = el.dataset.countText; }, 600);
+    }
+    counterObserver.unobserve(el);
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('[data-count], [data-count-text]').forEach(el => counterObserver.observe(el));
+
+// ── Contact form ──
+document.getElementById('contact-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const form = e.target;
+  const btn  = form.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  btn.textContent = 'Отправляю…';
+  setTimeout(() => {
+    form.style.display = 'none';
+    const success = document.getElementById('form-success');
+    success.style.display = 'flex';
+  }, 900);
+});
 </script>
 
 </body>
