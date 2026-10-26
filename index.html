@@ -280,7 +280,24 @@ nav .wrap { display: flex; justify-content: space-between; align-items: center; 
   transition: border-color .2s, color .2s;
 }
 .contact-link:hover { border-color: var(--accent); color: var(--accent-lt); }
+.contact-link.selected {
+  border-color: var(--accent);
+  color: var(--fg);
+  background: rgba(184,135,42,.12);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.contact-link.selected::after {
+  content: '✓';
+  margin-left: auto;
+  color: var(--accent);
+  font-size: 1rem;
+}
 .contact-icon { font-size: 1.2rem; }
+.contact-method-hint {
+  font-size: .85rem;
+  color: var(--fg-muted);
+  margin-bottom: 8px;
+}
 
 /* FOOTER */
 footer {
@@ -675,22 +692,23 @@ html { scroll-behavior: smooth; }
     <div class="contact-inner">
       <h2>Обсудим вашу задачу</h2>
       <p>Напишите в Telegram — расскажите о своём бизнесе. Первая консультация бесплатно: разберём, что реально поможет, и вы сами решите, нужно ли вам это.</p>
+      <p class="contact-method-hint">Выберите удобный способ связи:</p>
       <div class="contact-links">
-        <a href="https://t.me/vladimir_medin" class="contact-link">
+        <button type="button" class="contact-link" data-method="telegram">
           <span class="contact-icon">✈</span>
           Telegram: @vladimir_medin
-        </a>
-        <a href="mailto:vmedin2019@gmail.com" class="contact-link">
+        </button>
+        <button type="button" class="contact-link" data-method="email">
           <span class="contact-icon">@</span>
           vmedin2019@gmail.com
-        </a>
+        </button>
       </div>
 
       <form class="contact-form" id="contact-form" novalidate>
         <input type="text" name="name" placeholder="Ваше имя" required autocomplete="name">
         <input type="email" name="email" placeholder="Email" required autocomplete="email">
         <textarea name="message" placeholder="Расскажите о вашей задаче" required></textarea>
-        <button type="submit" class="btn">Отправить</button>
+        <button type="submit" class="btn" id="submit-btn" disabled style="opacity:.5;cursor:not-allowed">Отправить</button>
       </form>
       <div class="form-success" id="form-success">
         <div class="form-success-icon">✓</div>
@@ -807,15 +825,30 @@ const counterObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.5 });
 document.querySelectorAll('[data-count], [data-count-text]').forEach(el => counterObserver.observe(el));
 
-// ── Contact form ──
+// ── Contact method selection + form ──
+let selectedMethod = null;
+const submitBtn = document.getElementById('submit-btn');
+
+document.querySelectorAll('.contact-link[data-method]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.contact-link[data-method]').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedMethod = btn.dataset.method;
+    submitBtn.disabled = false;
+    submitBtn.style.opacity = '1';
+    submitBtn.style.cursor = 'pointer';
+    submitBtn.style.animation = '';
+  });
+});
+
 document.getElementById('contact-form').addEventListener('submit', e => {
   e.preventDefault();
-  const form = e.target;
-  const btn  = form.querySelector('button[type="submit"]');
-  btn.disabled = true;
-  btn.textContent = 'Отправляю…';
+  if (!selectedMethod) return;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Отправляю…';
   setTimeout(() => {
-    form.style.display = 'none';
+    e.target.style.display = 'none';
+    document.querySelectorAll('.contact-links, .contact-method-hint').forEach(el => el.style.display = 'none');
     const success = document.getElementById('form-success');
     success.style.display = 'flex';
   }, 900);
